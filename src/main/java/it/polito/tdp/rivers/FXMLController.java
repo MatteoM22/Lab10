@@ -5,9 +5,14 @@
 package it.polito.tdp.rivers;
 
 import java.net.URL;
+import java.sql.Date;
+import java.util.List;
 import java.util.ResourceBundle;
 
+import it.polito.tdp.rivers.model.MediaEConteggio;
 import it.polito.tdp.rivers.model.Model;
+import it.polito.tdp.rivers.model.River;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
@@ -25,7 +30,7 @@ public class FXMLController {
     private URL location;
 
     @FXML // fx:id="boxRiver"
-    private ComboBox<?> boxRiver; // Value injected by FXMLLoader
+    private ComboBox<River> boxRiver; // Value injected by FXMLLoader
 
     @FXML // fx:id="txtStartDate"
     private TextField txtStartDate; // Value injected by FXMLLoader
@@ -47,6 +52,51 @@ public class FXMLController {
 
     @FXML // fx:id="txtResult"
     private TextArea txtResult; // Value injected by FXMLLoader
+    
+    private List<River> rivers;
+    private List<String> date;
+    private int nInsodisfatti;
+    private double occupazione;
+    
+    @FXML
+    void onSimula(ActionEvent event) {
+    	txtResult.clear();
+    	Integer k = Integer.parseInt(txtK.getText());
+    	if(k.equals(null)) {
+    		txtResult.setText("Inserisci valore numerico al fattore k!");
+    	}
+    	else {
+    		
+    		River fiume = boxRiver.getValue();
+    		MediaEConteggio m = model.getMediaECconteggio(fiume.getId());
+    		
+    		nInsodisfatti=model.simula(k, m.getAvg(), fiume.getId());
+    		occupazione=model.simula2(k, m.getAvg(), fiume.getId());
+    		
+    		txtResult.setText("Giorni non garantiti: "+nInsodisfatti+"\n"+
+    		"Occupazione media del bacino: "+occupazione);
+    	}
+    }
+    
+    @FXML
+    void onScegli(ActionEvent event) {
+    	txtResult.clear();
+    	if(boxRiver==null) {
+    		txtResult.setText("Seleziona una fiume!");
+    	}
+    	else {
+    		River fiume = boxRiver.getValue();
+  
+    		MediaEConteggio m = model.getMediaECconteggio(fiume.getId());
+    		date = model.getAllDate(fiume.getId());
+    		
+    		txtNumMeasurements.setText(String.valueOf(m.getCount()));
+    		txtFMed.setText(String.valueOf(m.getAvg()));
+    		txtStartDate.setText(date.get(0));
+    		txtEndDate.setText(date.get(date.size()-1));
+    	}
+   
+    }
 
     @FXML // This method is called by the FXMLLoader when initialization is complete
     void initialize() {
@@ -62,5 +112,9 @@ public class FXMLController {
     
     public void setModel(Model model) {
     	this.model = model;
+    	rivers= model.getRivers();
+    	for(River r: rivers) {
+    	boxRiver.getItems().add(r);
+    	}
     }
 }
